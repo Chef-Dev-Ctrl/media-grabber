@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Media Grabber</title>
+<link rel="icon" href="/favicon.png">
+<link rel="apple-touch-icon" href="/favicon.png">
+<script>
+  (function () {
+    var t = null; try { t = localStorage.getItem('mg_theme'); } catch (e) {}
+    if (!t) t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<style>
+  :root, [data-theme="dark"] { --bg: #0c0e13; --surface: #14171f; --surface-2: #1b1f29; --line: #262b37; --text: #eceef4;
+    --muted: #8b93a7; --accent: #7383ff; --accent-soft: rgba(115,131,255,.14); --err: #ff6b6b; color-scheme: dark; }
+  [data-theme="light"] { --bg: #f4f5f9; --surface: #fff; --surface-2: #f2f3f8; --line: #e2e5ed; --text: #141821;
+    --muted: #5f6779; --accent: #4f5ef0; --accent-soft: rgba(79,94,240,.10); --err: #e0424b; color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px; background: var(--bg); color: var(--text);
+    font: 15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif; }
+  .card { width: min(380px, 100%); background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 28px 24px; text-align: center; }
+  img { width: 56px; height: 56px; }
+  h1 { font-size: 20px; margin: 12px 0 4px; }
+  p { color: var(--muted); margin: 0 0 20px; font-size: 14px; }
+  input { width: 100%; text-align: center; font: 600 28px/1 ui-monospace, Consolas, monospace; letter-spacing: .35em; padding: 14px 8px 14px 18px;
+    border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface-2); color: var(--text); outline: none; }
+  input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  button { width: 100%; margin-top: 12px; height: 48px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: 600 16px inherit; cursor: pointer; }
+  button:disabled { opacity: .5; }
+  .err { color: var(--err); font-size: 13px; min-height: 20px; margin-top: 10px; }
+</style>
+</head>
+<body>
+  <form class="card" id="f" autocomplete="off">
+    <img src="/favicon.png" alt="">
+    <h1>Media Grabber</h1>
+    <p>Enter the 6-digit PIN shown in Settings on the host PC.</p>
+    <input id="pin" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••••" aria-label="PIN" autofocus>
+    <button id="go">Continue</button>
+    <div class="err" id="err" role="alert"></div>
+  </form>
+<script>
+  const pin = document.getElementById('pin'), go = document.getElementById('go'), err = document.getElementById('err');
+  pin.addEventListener('input', () => { pin.value = pin.value.replace(/\D/g, '').slice(0, 6); if (pin.value.length === 6) submit(); });
+  document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); submit(); });
+  async function submit() {
+    if (pin.value.length !== 6) { err.textContent = 'The PIN has 6 digits'; return; }
+    go.disabled = true; err.textContent = '';
+    try {
+      const r = await fetch('/api/pin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin: pin.value }) });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) { location.href = '/'; return; }
+      err.textContent = j.error || 'Something went wrong';
+      pin.value = ''; pin.focus();
+    } catch { err.textContent = 'Can’t reach the host PC. Is Media Grabber still open there?'; }
+    go.disabled = false;
+  }
+</script>
+</body>
+</html>

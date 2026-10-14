@@ -1,0 +1,21 @@
+# build output
+build/
+dist/
+installer/*.exe
+installer/*.dmg
+*.spec
+__pycache__/
+
+# bundled binaries (ffmpeg is 100 MB; fetched at build time)
+vendor/
+
+# personal data: never commit (the app keeps these in the per-user data folder, but just in case)
+cookies.txt
+history.json
+settings.json
+secret.key
+instance.json
+*.log
+
+# local tooling
+.claude/

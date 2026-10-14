@@ -1,0 +1,5 @@
+flask
+yt-dlp
+gallery-dl
+pywebview
+qrcode
